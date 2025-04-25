@@ -5,44 +5,41 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
-import ServicesPage from "@/pages/ServicesPage";
-import TeamPage from "@/pages/TeamPage";
-import PortfolioPage from "@/pages/PortfolioPage";
-import ContactPage from "@/pages/ContactPage";
+import ServicesPage from "./pages/ServicesPage";
+import TeamPage from "./pages/TeamPage";
+import PortfolioPage from "./pages/PortfolioPage";
+import ContactPage from "./pages/ContactPage";
 import { useEffect } from "react";
 
 function Router() {
-  const [location] = useLocation();
-  const router = useRouter();
+  const [location, navigate] = useLocation();
 
-  // Set up special handling for SPA navigation paths
-  useEffect(() => {
-    // Override navigation for our section paths to make them work as a SPA
-    const originalPush = router.push;
-    router.push = (to, options) => {
-      // Check if this is one of our section paths
-      const sectionPaths = ['/services', '/our-team', '/portfolio', '/contact'];
-      if (sectionPaths.includes(to)) {
-        // Extract the section ID
-        const sectionId = to === '/our-team' ? 'team' : to.substring(1);
-        
-        // Scroll to the section when navigating to the section path
-        const section = document.getElementById(sectionId);
-        if (section) {
-          section.scrollIntoView({ behavior: 'smooth' });
-          return true; // Indicate success without actual navigation
-        }
-      }
+  // Helper function to handle navigation to section paths
+  const navigateToSection = (path: string) => {
+    // Check if this is one of our section paths
+    const sectionPaths = ['/services', '/our-team', '/portfolio', '/contact'];
+    if (sectionPaths.includes(path)) {
+      // Extract the section ID
+      const sectionId = path === '/our-team' ? 'team' : path.substring(1);
       
-      // Use the original push for other paths
-      return originalPush(to, options);
-    };
-    
-    return () => {
-      // Restore the original push method
-      router.push = originalPush;
-    };
-  }, [router]);
+      // Scroll to the section when navigating to the section path
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth' });
+        navigate(path, { replace: true });
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // Set up effects to handle initial navigation
+  useEffect(() => {
+    if (location !== '/' && 
+        ['/services', '/our-team', '/portfolio', '/contact'].includes(location)) {
+      navigateToSection(location);
+    }
+  }, []);
 
   return (
     <Switch>

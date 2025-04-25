@@ -29,6 +29,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add routes to handle the clean URL paths - serve the SPA for all these routes
+  const spaRoutes = ['/', '/services', '/our-team', '/portfolio', '/contact'];
+  spaRoutes.forEach(route => {
+    app.get(route, (req, res, next) => {
+      // Allow Vite middleware to handle the request when in development mode
+      if (process.env.NODE_ENV === 'development') {
+        return next();
+      }
+      // In production, we would serve the index.html here
+    });
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 type ScrollSpyOptions = {
   sectionIds: string[];
   offset?: number;
+  usePathUrls?: boolean; // Whether to use path-based URLs instead of hash URLs
 };
 
 type ScrollSpyResult = {
@@ -10,7 +11,7 @@ type ScrollSpyResult = {
   scrollProgress: number;
 };
 
-export function useScrollSpy({ sectionIds, offset = 80 }: ScrollSpyOptions): ScrollSpyResult {
+export function useScrollSpy({ sectionIds, offset = 80, usePathUrls = false }: ScrollSpyOptions): ScrollSpyResult {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [scrollProgress, setScrollProgress] = useState<number>(100);
 
@@ -67,7 +68,19 @@ export function useScrollSpy({ sectionIds, offset = 80 }: ScrollSpyOptions): Scr
 
     // Update URL with active section if changed
     if (currentSection && activeSection !== currentSection) {
-      window.history.replaceState(null, '', `#${currentSection}`);
+      // Get path based on section ID
+      const getPathForSection = (id: string) => {
+        if (id === 'team') return '/our-team';
+        return `/${id}`;
+      };
+      
+      // Update URL based on preferred URL format
+      if (usePathUrls) {
+        window.history.replaceState(null, '', getPathForSection(currentSection));
+      } else {
+        window.history.replaceState(null, '', `#${currentSection}`);
+      }
+      
       setActiveSection(currentSection);
     }
 

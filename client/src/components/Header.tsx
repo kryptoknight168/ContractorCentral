@@ -5,13 +5,14 @@ import { Building } from "lucide-react";
 type NavItem = {
   id: string;
   title: string;
+  path: string;
 };
 
 const navItems: NavItem[] = [
-  { id: "services", title: "Services" },
-  { id: "team", title: "Our Team" },
-  { id: "portfolio", title: "Portfolio" },
-  { id: "contact", title: "Contact Us" }
+  { id: "services", title: "Services", path: "/services" },
+  { id: "team", title: "Our Team", path: "/our-team" },
+  { id: "portfolio", title: "Portfolio", path: "/portfolio" },
+  { id: "contact", title: "Contact Us", path: "/contact" }
 ];
 
 export default function Header({ activeSection, scrollProgress }: { 
@@ -26,12 +27,12 @@ export default function Header({ activeSection, scrollProgress }: {
   };
 
   // Close mobile menu when clicking a link
-  const handleNavClick = (sectionId: string) => {
+  const handleNavClick = (item: NavItem) => {
     setMobileMenuOpen(false);
-    const element = document.getElementById(sectionId);
+    const element = document.getElementById(item.id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
-      setLocation(`/#${sectionId}`, { replace: true });
+      setLocation(item.path, { replace: true });
     }
   };
 
@@ -76,11 +77,11 @@ export default function Header({ activeSection, scrollProgress }: {
                 data-section={item.id}
               >
                 <a 
-                  href={`#${item.id}`} 
+                  href={item.path} 
                   className={`font-medium hover:text-primary transition duration-300 py-2 ${activeSection === item.id ? 'text-primary' : ''}`}
                   onClick={(e) => {
                     e.preventDefault();
-                    handleNavClick(item.id);
+                    handleNavClick(item);
                   }}
                 >
                   {item.title}
@@ -118,11 +119,11 @@ export default function Header({ activeSection, scrollProgress }: {
           {navItems.map(item => (
             <a 
               key={item.id}
-              href={`#${item.id}`}
+              href={item.path}
               className={`block py-2 px-4 text-lg hover:bg-accent hover:text-primary rounded transition duration-300 ${activeSection === item.id ? 'text-primary bg-accent' : ''}`}
               onClick={(e) => {
                 e.preventDefault();
-                handleNavClick(item.id);
+                handleNavClick(item);
               }}
             >
               {item.title}
