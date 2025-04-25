@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -32,7 +33,8 @@ import {
   Facebook, 
   Instagram, 
   Linkedin, 
-  Send 
+  Send,
+  ShieldCheck
 } from "lucide-react";
 
 // Contact form validation schema
@@ -41,7 +43,11 @@ const formSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   phone: z.string().regex(/^(\+\d{1,3})?[ ]?\(?\d{3}\)?[ ]?[-.]?\d{3}[ ]?[-.]?\d{4}$/, "Please enter a valid phone number"),
   project: z.string().min(1, "Please select a project type"),
-  message: z.string().min(5, "Please enter a message (min 5 characters)")
+  message: z.string().min(5, "Please enter a message (min 5 characters)"),
+  verificationCode: z.string().min(4, "Please enter the verification code"),
+  humanVerify: z.boolean().refine(val => val === true, {
+    message: "You must verify that you are human"
+  })
 });
 
 type ContactFormValues = z.infer<typeof formSchema>;
@@ -58,6 +64,8 @@ export default function ContactSection({
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [verificationCode, setVerificationCode] = useState("BLD" + Math.floor(1000 + Math.random() * 9000)); // Random 4-digit code with BLD prefix
+  
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -65,7 +73,9 @@ export default function ContactSection({
       email: "",
       phone: "",
       project: "",
-      message: ""
+      message: "",
+      verificationCode: "",
+      humanVerify: false
     },
   });
 
@@ -73,6 +83,16 @@ export default function ContactSection({
     setIsSubmitting(true);
     
     try {
+      // Verify the code matches
+      if (data.verificationCode !== verificationCode) {
+        form.setError("verificationCode", {
+          type: "manual",
+          message: "The verification code you entered is incorrect"
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
@@ -81,6 +101,8 @@ export default function ContactSection({
         description: "Thank you for your message. We'll get back to you soon.",
       });
       
+      // Generate a new verification code for next submission
+      setVerificationCode("BLD" + Math.floor(1000 + Math.random() * 9000));
       form.reset();
     } catch (error) {
       toast({
@@ -106,7 +128,7 @@ export default function ContactSection({
       background="secondary"
       onVisibilityChange={handleVisibilityChange}
     >
-      <p className="text-lg text-gray-300 max-w-3xl mx-auto">
+      <p className="text-lg text-gray-300 max-w-3xl text-left">
         Ready to start your project? Contact us today for a consultation and free quote.
       </p>
       
@@ -218,14 +240,78 @@ export default function ContactSection({
                 )}
               />
               
-              <Button 
-                type="submit" 
-                className="w-full bg-primary hover:bg-red-700 text-white" 
-                disabled={isSubmitting}
-              >
-                <span>Send Message</span>
-                <Send className="ml-2 h-4 w-4" />
-              </Button>
+              <div className="space-y-6">
+                <div className="bg-gray-800 p-4 rounded-lg">
+                  <div className="flex items-center mb-3">
+                    <ShieldCheck className="h-5 w-5 text-primary mr-2" />
+                    <h4 className="text-white font-medium">Human Verification</h4>
+                  </div>
+                  
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="px-4 py-2 bg-gray-700 rounded select-none text-lg text-gray-300 tracking-wider font-mono" style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.5)" }}>
+                      {verificationCode}
+                    </div>
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => setVerificationCode("BLD" + Math.floor(1000 + Math.random() * 9000))}
+                    >
+                      New Code
+                    </Button>
+                  </div>
+                  
+                  <FormField
+                    control={form.control}
+                    name="verificationCode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-300">Enter the code above</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Enter verification code" 
+                            {...field} 
+                            className="bg-gray-700 text-white border-gray-600 focus:border-primary" 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="humanVerify"
+                    render={({ field }) => (
+                      <FormItem className="flex items-start space-x-3 space-y-0 pt-3">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            className="bg-gray-700 border-gray-500 text-primary"
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-gray-300">
+                            I am not a robot
+                          </FormLabel>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <Button 
+                  type="submit" 
+                  className="w-full bg-primary hover:bg-red-700 text-white" 
+                  disabled={isSubmitting}
+                >
+                  <span>Send Message</span>
+                  <Send className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
             </form>
           </Form>
         </div>

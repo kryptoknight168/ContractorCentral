@@ -61,7 +61,7 @@ const SectionContainer = ({
       data-section-id={id}
     >
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
+        <div className={`${id === 'contact' ? 'text-left' : 'text-center'} mb-16`}>
           <h2 className="font-inter font-bold text-4xl md:text-5xl text-dark mb-4">
             {title}
           </h2>
