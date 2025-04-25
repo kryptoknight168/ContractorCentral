@@ -57,7 +57,7 @@ const SectionContainer = ({
     <section
       id={id}
       ref={sectionRef}
-      className={`min-h-screen py-16 ${getBgColor()} ${className}`}
+      className={`min-h-screen pt-28 pb-16 ${getBgColor()} ${className}`}
       data-section-id={id}
     >
       <div className="container mx-auto px-4">
